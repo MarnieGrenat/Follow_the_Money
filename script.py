@@ -1,60 +1,156 @@
-import depedencies as dp
-
+'''
+Linhas: 12
+Colunas: 18
+Valor total: 1631
+Lista:
+[28, 17, 4, 13, 0, 0, 7, 561, 9, 2,
+8,
+8, 2, 2, 4, 6,
+7,
+99, 3,
+91,
+1, 9, 5, 7, 0, 461,
+127,
+3,
+2, 7, 0, 6, 9,
+9,
+5, 8, 4, 83, 6, 5, 0, 3]
+'''
 # Constants
-GOTCHA          =   "#"
-POSICAO_INICIAL =   [0, 0]
-ESQUERDA        =   [-1, 0]
-DIREITA         =   [1, 0]
-ACIMA           =   [0, -1]
-ABAIXO          =   [0, 1]
+PATH                = "./map.txt"
+DEAD_END            =   "#"
+SPACE               =   "+"
+VERTICAL_STREET     = "|"
+HORIZONTAL_STREET   = "-"
+INITIAL_POSITION    =   [0,  0]
+UPWARDS             =   [-1, 0]
+DOWNWARDS           =   [1,  0]
+LEFT                =   [0, -1]
+RIGHT               =   [0,  1]
+
 # Functions
-def receber_parametro(path:str) -> str:
-    pass
-def reestruturar_matriz(_map:str) -> list:
-    pass
-def percorrer_matriz(matriz:list) -> float, list:
-    posicao_atual = [0,0]
-    direcao = verificar_direcao(matriz, posicao_atual)
-    lista_dinheiro = []
-    valor_total = 0
+def get_map_matrix(path:str) -> list:
+    return transform_map_to_matrix(get_map(path))
+
+def transform_map_to_matrix(_map:str) -> list:
+    '''
+    Transform the map into a matrix, where each element is a character of the map
+    Complexity: O(n)
+    Space Complexity: O(lines * columns)
+    '''
+    _map = _map.split('\n')
+    matrix = []
+    for line in _map:
+        matrix.append(list(line))
+
+    # pegar tamanho da maior linha da matriz
+    max_size = max(len(line) for line in matrix)
+    for line in matrix:
+        line.extend([SPACE] * (max_size - len(line)))
+    return matrix
+
+def get_map(path:str) -> str:
+    '''
+    Access the file and return the map as a string
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    '''
+    with open(path, 'r') as file:
+        track = file.read()
+    track = track.replace(' ', SPACE)
+    track = track[track.find('\n') + 1:]
+    print(track)
+    return track
+
+def print_matrix_position(matrix: list, position: list) -> None:
+    for i, row in enumerate(matrix):
+        printed_row = row.copy()
+        if i == position[0]:
+            printed_row[position[1]] = "X"
+        print("".join(map(str, printed_row)))
+
+
+def travel_through_matrix(matrix: list) -> list:
+    '''
+    Travel through the matrix and return the total value of the money and a list with the money in the order they were found
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    '''
+    # Verify first direction
+    direction = INITIAL_POSITION
+    if matrix[0][0] == HORIZONTAL_STREET or matrix[0][0].isdigit():
+        print("Direção inicial: direita")
+        direction = RIGHT
+    elif matrix[0][0] == VERTICAL_STREET or matrix[0][0].isdigit():
+        print("Direção inicial: esquerda")
+        direction = DOWNWARDS
+
+    # Travel through the matrix
+    list_money = []
+    current_position = INITIAL_POSITION
     try:
-        while (matriz[posicao_atual] != GOTCHA):
-            _, valor_atual, posicao_atual = verificar_valor(matriz, posicao_atual)
-            if (_):
-                valor_total += valor_atual 
-                lista_dinheiro.append(valor_atual)
+        while matrix[current_position[0]][current_position[1]] != DEAD_END:
+            # If the current position is a corner, then change the direction
+            if matrix[current_position[0]][current_position[1]] in ['\\', '/']:
+                direction = change_direction(matrix, current_position, direction)
+            # print(f"Posição atual: {current_position}, Direção atual: {direction}")
 
-            direcao = verificar_direcao(matriz, posicao_atual, direcao)
+            # Update the current position to the next position
+            current_position[0] += direction[0]
+            current_position[1] += direction[1]
     except:
-        print("Erro! A execução não foi finalizada.")
-    return valor_total, lista_dinheiro
+        print("Erro! A execução não foi finalizada corretamente.")
+    return list_money
 
-def verificar_direcao(matriz:list, current_position:list, current_direction:list=[0,0]) -> list:
-    direction = current_direction
-    __list = ['-','/','\\', '|', '#']
-    if matriz[current_position + direction] in __list:
-        return current_direction
-    
-    if matriz[current_position + []]
+def change_direction(matrix:list, position:list, direction:list=INITIAL_POSITION) -> list:
+    '''
+    Verify the direction to follow in the matrix using the current position and the current direction
+    Time Complexity: O(1)
+    Space Complexity: O(1)
+    '''
 
+    x = position[0]
+    y = position[1]
 
-    
-def verificar_valor(matriz:list, current_position:list) -> bool, int, tuple:
-    __list = ['-','/','\\', '|', '#']
-    if matriz[current_position] in __list:
-        return False, 0, []
-    iteracao = current_direction
-    value = str(matriz[current_position])
-    while matriz[current_position + iteracao] not in __list:
-        value += str(matriz[current_position + iteracao])
-        iteracao += current_direction
-    return True, int(value), (current_position + iteracao)
+    end_border = (x == len(matrix)-1 or y == len(matrix[0])-1)
 
+    if direction[1] != 0:    # CURRENT DIRECTION IS HORIZONTAL
+        if (end_border) or (matrix[x+1][y] is VERTICAL_STREET) or (matrix[x+1][y].isdigit()):
+            return DOWNWARDS
+        return UPWARDS
+    if direction[0] != 0:   # CURRENT DIRECTION IS VERTICAL
+        if (end_border) or (matrix[x][y-1] is HORIZONTAL_STREET) or (matrix[x][y-1].isdigit()):
+            return LEFT
+        return RIGHT
+
+    print(f"Erro! Não foi possível definir direção a partir da posição {position}.")
+    return INITIAL_POSITION
+
+def verify_value(matrix:list, current_position:list, current_direction:list=INITIAL_POSITION) -> tuple: # (bool, int, tuple)
+    '''
+    Verify if the current position has a value, if so, capture that value and ends returning the value and the next position
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    '''
+    if not matrix[current_position].isdigit():
+        return (False, 0, [])
+
+    digits = str(matrix[current_position])
+    while matrix[current_position + current_direction].isdigit():   # While the next element is a number
+        current_position += current_direction                       # Move to the next position that will be a digit
+        digits += str(matrix[current_position])                     # Add the number to the digits
+    return (True, int(digits), current_position)
+
+def main():
+    print("Iniciando execução do script...")
+    money_map = get_map_matrix(PATH)
+
+    sorted_list = travel_through_matrix(money_map)
+    total_value = sum(sorted_list)
+    print("Execução finalizada!")
+    print(f"Valor total do dinheiro derrubado: {total_value}")
+    print(f"Lista ordenada de dinheiro derrubado: /n{sorted_list}")
 
 if __name__ == "__main__":
-    _ = receber_parametro()
-    mapa = reestruturar_matriz(_)
-    valor_total, lista_ordenada = percorrer_matriz(mapa)
-
-    print(f"Valor total do dinheiro derrubado: {valor_total}")
-    print(f"Lista ordenada de dinheiro derrubado: /n{lista_ordenada}")
+    main()
+    pass
