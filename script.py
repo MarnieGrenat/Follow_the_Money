@@ -1,27 +1,12 @@
-'''
-Linhas: 12
-Colunas: 18
-Valor total: 1631
-Lista:
-[28, 17, 4, 13, 0, 0, 7, 561, 9, 2,
-8,
-8, 2, 2, 4, 6,
-7,
-99, 3,
-91,
-1, 9, 5, 7, 0, 461,
-127,
-3,
-2, 7, 0, 6, 9,
-9,
-5, 8, 4, 83, 6, 5, 0, 3]
-'''
+
 # Constants
 PATH                = "./map.txt"
+VISITED             =   "X"
 DEAD_END            =   "#"
 SPACE               =   "+"
 VERTICAL_STREET     =   "|"
 HORIZONTAL_STREET   =   "-"
+
 CURVE               =   ['\\', '/']
 POSITIONAL_ERROR    =   [0,  0]
 UPWARDS             =   [-1, 0]
@@ -29,7 +14,6 @@ DOWNWARDS           =   [1,  0]
 LEFT                =   [0, -1]
 RIGHT               =   [0,  1]
 
-PRINT_POSITION      = "@"
 # Functions
 def get_map_matrix(path:str) -> list:
     return transform_map_to_matrix(get_map(path))
@@ -68,12 +52,12 @@ def get_map(path:str) -> str:
 
 def print_matrix_position(matrix: list, position: list) -> None:
     '''
-    print matrix for debugging.
+    print matrix. Debugging porpuses
     '''
     for i, row in enumerate(matrix):
         printed_row = row.copy()
         if i == position[0]:
-            printed_row[position[1]] = PRINT_POSITION
+            printed_row[position[1]] = VISITED
         print("".join(map(str, printed_row)))
 
 
@@ -86,19 +70,22 @@ def travel_through_matrix(matrix:list, coordinates:list, direction:list) -> tupl
     # Travel through the matrix
     money_list = []
     x, y = coordinates
-    try:
-        while matrix[x][y] not in CURVE:
-            print(f"{matrix[x][y]} - Posição atual: {[x,y]}, Direção atual: {direction}")
-            if matrix[x][y].isdigit():
-                print("Dígito Encontrado!")
-                money, [x,y] = verify_value(matrix, matrix[x][y], direction)
-                money_list.append(money)
+    while (matrix[x][y] not in CURVE):
+        # print(f"| Current Element: {matrix[x][y]} | Current Position: {[x,y]} | Current Direction: {direction}|")
+        if matrix[x][y].isdigit():
+            print("[VERBOSE] DIGIT FOUND!")
+            money, [x,y] = verify_value(matrix, [x, y], direction)
+            money_list.append(money)
+            continue
 
-            # Update the current position to the next position
-            x += direction[0]
-            y += direction[1]
-    except:
-        print("Erro! A execução não foi finalizada corretamente.")
+        # Update the current position to the next position
+        x += direction[0]
+        y += direction[1]
+
+        # If error or deadend
+        if(matrix[x][y] in [DEAD_END, SPACE]):
+            print(f"[VERBOSE] Dead End or SPACE Found! {matrix[x][y]}")
+            break
     return (money_list, [x,y], direction)
 
 def change_direction(matrix:list, position:list, direction:list=POSITIONAL_ERROR) -> list:
@@ -115,14 +102,18 @@ def change_direction(matrix:list, position:list, direction:list=POSITIONAL_ERROR
 
         if direction[1] != 0:    # CURRENT DIRECTION IS HORIZONTAL
             if (end_border) or (matrix[x+1][y] is VERTICAL_STREET) or (matrix[x+1][y].isdigit()):
+                print(f"[VERBOSE] New Direction: DOWNWARDS")
                 return DOWNWARDS
+            print(f"[VERBOSE] New Direction: UPWARDS")
             return UPWARDS
         if direction[0] != 0:   # CURRENT DIRECTION IS VERTICAL
             if (end_border) or (matrix[x][y-1] is HORIZONTAL_STREET) or (matrix[x][y-1].isdigit()):
+                print(f"[VERBOSE] New Direction: LEFT")
                 return LEFT
+            print(f"[VERBOSE] New Direction: RIGHT")
             return RIGHT
     except:
-        print(f"Erro! Não foi possível definir direção a partir da posição {position}.")
+        print(f"[ERROR] Não foi possível definir direção a partir da posição {position}.")
         return POSITIONAL_ERROR
 
 def verify_value(matrix:list, current_position:list, direction:list=POSITIONAL_ERROR) -> tuple: # money list, next position
@@ -131,23 +122,26 @@ def verify_value(matrix:list, current_position:list, direction:list=POSITIONAL_E
     Time Complexity: O(n)
     Space Complexity: O(1)
     '''
-    if not matrix[current_position].isdigit():
-        return (False, 0, [])
-    digits =  str(matrix[current_position[0]][current_position[1]])
-
-    i = current_position[0] + direction[0]
-    j = current_position[1] + direction[1]
-
+    i = current_position[0]
+    j = current_position[1]
+    digits = ""
+    # print(f"[VERBOSE] Checking Value: {matrix[i][j]} at position {[i,j]}")
     while matrix[i][j].isdigit():
+        digits += str(matrix[i][j]) # add the next digit to the current number
+        matrix[i][j] = VISITED
         i += direction[0]
         j += direction[1]
-        digits += str(matrix[i][j]) # add the next digit to the current number
 
+    print(f"[VERBOSE] Money value: {digits}")
     return (int(digits), [i,j])
 
-def define_initial_direction(position:str):
+def define_initial_direction(position:str) -> list:
+    '''
+    Define the initial direction to follow in the matrix.
+    If the first position is a digit, return an error.
+    '''
     if position.isdigit():
-        print("Erro! Primeira posição deve definir direção!")
+        print("[ERROR] First position should define direction!")
         return POSITIONAL_ERROR
     if position == HORIZONTAL_STREET:
         return RIGHT
@@ -158,17 +152,27 @@ def main():
     money_map = get_map_matrix(PATH)
     direction = define_initial_direction(money_map[y][x])
     sorted_list = []
+    append_list = []
 
     while (money_map[y][x] != DEAD_END):
         money_list, [y,x], direction = travel_through_matrix(money_map, [y,x], direction)
-        direction = change_direction(money_map, [y,x], direction)
-        sorted_list.append(money_list)
 
-    print(f"Valor total do dinheiro derrubado: {sum(sorted_list)}")
-    print(f"Lista ordenada de dinheiro derrubado: \n{sorted_list}")
+        append_list.append(money_list)  # append the list of money dropped in the current street
+        sorted_list += money_list       # append all the  money dropped in the current street
+        if (money_map[y][x] in [SPACE, DEAD_END]):
+            break
+
+        # print("[VERBOSE] Curve detected! Changing direction!")
+        direction = change_direction(money_map, [y ,x], direction)
+        y += direction[0]
+        x += direction[1]
+
+    print(f"[LOG] Lista ordenada de dinheiro derrubado: \n{sorted_list}\n")
+    print(f"[LOG] Lista ordenada de dinheiro derrubado: \n{append_list}\n")
+    print(f"[LOG] Valor total do dinheiro derrubado: {sum(sorted_list)}")
 
 
 if __name__ == "__main__":
-    print(f"Iniciando Execução!")
+    print(f"[VERBOSE] Initiating Executed!")
     main()
-    print("Execução Finalizada!")
+    print("[VERBOSE] Execution Finished Successfully!")
