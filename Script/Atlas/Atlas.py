@@ -1,8 +1,20 @@
-class Map:
+class Atlas:
     '''
-    Map class. It is responsible for loading the map from a file and transforming it into a matrix.
-    '''
+    Atlas class. It is responsible for loading the map from a file and transforming it into a matrix.
 
+    Attributes:
+        path (str)                                          :   The path to the map file.
+        map (list)                                          :   The map represented as a matrix.
+        start (list)                                        :   The starting position in the map.
+
+    Methods:
+        __init__(self, path: str) -> None                   :   Initializes a Map object.
+        __load_map(self) -> list                            :   Loads the map from the file.
+        __load_map_as_matrix(self, track:str) -> list       :   Transforms the map into a matrix.
+        __find_start(self) -> list                          :   Finds the start position in the map.
+        print_map_iteration(self, position: list) -> None   :   Prints the map with the current position marked as visited.
+        set_as_VISITED(self, row:int, column:int) -> None   :   Sets the current position as visited.
+    '''
     _VISITED             =   "X"
     _DEAD_END            =   "#"
     _WALL                =   "+"
@@ -46,37 +58,39 @@ class Map:
             line.extend([self._WALL] * (max_size - len(line)))
         return matrix
 
-
     def __find_start(self) -> list:
         '''
         Find the start position in the map
         Time Complexity: O(n)
-        Space Complexity: O(1)
         '''
-        for i, row in enumerate(self.map):
-            for j, element in enumerate(row):
-                if element == "S":
-                    return [i, j]
-
+        return self.map[::][0].index(self._HORIZONTAL_STREET)
 
     def print_map_iteration(self, position: list) -> None:
+        '''
+        Prints the map with the current position marked as visited.
+
+        Args:
+            position (list): The current position in the map.
+
+        Returns:
+            None
+        '''
         for i, row in enumerate(self.map):
             printed_row = row.copy()
             if i == position[0]:
                 printed_row[position[1]] = self._VISITED
             print("".join(map(str, printed_row)))
 
-    def get_initial_direction(self) -> list:
+    def set_as_VISITED(self, row:int, column:int) -> None:
         '''
-        Define the initial direction to follow in the map.
-        '''
-        return self.map[::][0].index(self._HORIZONTAL_STREET)
+        Sets the current position as visited.
 
-    def set_as__VISITED(self, row:int, column:int) -> None:
-        '''
-        Set the current position as _VISITED
-        Time Complexity: O(1)
-        Space Complexity: O(1)
+        Args:
+            row (int): The row index of the current position.
+            column (int): The column index of the current position.
+
+        Returns:
+            None
         '''
         self.map[row][column] = self._VISITED
 
