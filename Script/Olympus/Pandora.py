@@ -24,7 +24,7 @@ class Pandora:
         self.amount = 0
         self.money_list = []
 
-    def collect(self, amount: str, verbose: bool = False) -> None:
+    def collect(self, value: int, verbose: bool = False) -> None:
         """
         Collects money and adds it to the bag.
 
@@ -32,9 +32,10 @@ class Pandora:
             amount (str): The amount of money to collect.
             verbose (bool, optional): Whether to print verbose information. Defaults to False.
         """
-        self.money_list.append(amount)
-        self.amount += int(amount)
-        print(f"[VERBOSE] Money value: {amount}") if verbose else None
+        self.money_list.append(value)
+        self.amount += value
+        if verbose:
+            print(f"[LOG] Money value: {value}")
 
     def remove(self, amount) -> None:
         """

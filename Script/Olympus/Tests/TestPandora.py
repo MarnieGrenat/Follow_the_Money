@@ -1,5 +1,5 @@
 import unittest
-from Pandora import Pandora
+from Script.Olympus.Pandora import Pandora
 
 class TestPandora(unittest.TestCase):
     def setUp(self):

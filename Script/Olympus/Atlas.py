@@ -21,11 +21,19 @@ class Atlas:
     _VERTICAL_STREET     =   "|"
     _HORIZONTAL_STREET   =   "-"
     _CURVE               =   ['\\', '/']
-
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, debug:bool=False) -> None:
         self.path = path
+        self.debug = debug
+
         self.map = self.__load_map()
         self.start = self.__find_start()
+
+        self.last_pos = self.start
+        self.map_copy = self.__load_map()
+        for row in self.map_copy:
+            for i in range(len(row)):
+                if row[i] == self._WALL:
+                    row[i] = ' '
 
     def __load_map(self) -> list:
         '''
@@ -58,13 +66,32 @@ class Atlas:
             line.extend([self._WALL] * (max_size - len(line)))
         return matrix
 
-    def __find_start(self) -> list:
+    def __find_start(self) -> tuple:
         '''
         Find the start position in the map
         Time Complexity: O(n)
         '''
-        return self.map[::][0].index(self._HORIZONTAL_STREET)
+        for r in range(len(self.map[::][0])):
+                if self.map[r][0] == self._HORIZONTAL_STREET:
+                    if self.debug:
+                        print(f"[VERBOSE] Start position: [{r}, 0]")
+                    return [r, 0]
 
+    def set_as_visited(self, pos:list) -> None:
+        '''
+        Sets the current position as visited.
+        Args:
+            row (int): The row index of the current position.
+            column (int): The column index of the current position.
+        Returns:
+            None
+        '''
+        row, column = pos
+        self.map[row][column] = self._VISITED
+
+    '''
+        DEBUG METHODS
+    '''
     def print_map_iteration(self, position: list) -> None:
         '''
         Prints the map with the current position marked as visited.
@@ -75,22 +102,21 @@ class Atlas:
         Returns:
             None
         '''
-        for i, row in enumerate(self.map):
-            printed_row = row.copy()
+        for i, row in enumerate(self.map_copy):
             if i == position[0]:
-                printed_row[position[1]] = self._VISITED
-            print("".join(map(str, printed_row)))
+                row[position[1]] = self._VISITED
+            print("".join(self.map_copy(str, row)))
 
-    def set_as_VISITED(self, row:int, column:int) -> None:
-        '''
-        Sets the current position as visited.
+    def debug_control(self, pos:list) -> None:
+        if self.debug:
+            self.map_copy[self.last_pos[0]][self.last_pos[1]] = self._VISITED
+            self.map_copy[pos[0]][pos[1]] = '@'
+            self.last_pos = pos.copy()
 
-        Args:
-            row (int): The row index of the current position.
-            column (int): The column index of the current position.
-
-        Returns:
-            None
-        '''
-        self.map[row][column] = self._VISITED
-
+    def debug_save(self, direction:dict) -> None:
+        if self.debug:
+            with open(self.path[:-4]+'_DEBUG.txt', 'w') as file:
+                file.write(f"Last Direction: {direction}\n")
+                for row in self.map_copy:
+                    file.write("".join(map(str, row)) + '\n')
+                file.close()

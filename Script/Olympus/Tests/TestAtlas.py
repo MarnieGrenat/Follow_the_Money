@@ -1,5 +1,5 @@
 import unittest
-from Atlas import Atlas
+from Script.Olympus.Atlas import Atlas
 
 
 class AtlasTest(unittest.TestCase):
