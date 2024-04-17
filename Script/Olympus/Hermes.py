@@ -10,8 +10,44 @@ from Olympus.Atlas import Atlas
 class Hermes:
     '''
     Hermes class. It's responsible for the movement and the money collection.
+
+    Attributes:
+        _dirs (dict): Dictionary containing direction vectors for movement.
+        atlas (Atlas): Instance of the Atlas class representing the map.
+        pandora (Pandora): Instance of the Pandora class representing the bag.
+        mapping (list): Representation of the map as a matrix.
+        position (list): Current position of Hermes in the map.
+        direction (list): Current direction vector of movement.
+        repeat (bool): Flag indicating whether to repeat visited locations.
+        debug (bool): Flag indicating whether to enable debugging.
+
+    Methods:
+        __init__(self, path:str, repeat_value:bool=False, debug:bool=False) -> None: Initializes a Hermes object.
+        should_repeat_value(self, value:bool) -> None: Sets the repeat flag to the specified value.
+        is_at_dead_end(self) -> bool: Checks if Hermes is at a dead end in the map.
+        is_not_at_wall(self) -> bool: Checks if Hermes is not at a wall in the map.
+        get_money_amount(self) -> int: Returns the total amount of money collected.
+        get_money_list(self) -> list: Returns the list of money values collected.
+        change_curve_direction(self) -> int: Updates direction based on current position and direction at curves.
+        travel_until_curve(self) -> int: Travels until encountering a curve or dead end, collecting money along the way.
+        collect_money(self) -> int: Collects money at current position and updates bag accordingly.
+        update_position_and_direction(self, direction : dict) -> None: Updates direction and position based on input direction.
+        update_position(self) -> None: Updates position based on current direction vector.
+        log(self, message:str) -> None: Logs a message if debugging is enabled.
+        log_position(self) -> None: Logs current position if debugging is enabled.
+        log_direction(self) -> None: Logs current direction if debugging is enabled.
+        log_informations(self) -> None: Logs current map element, position, direction, and money presence if debugging is enabled.
     '''
+
     def __init__(self, path:str, repeat_value:bool=False, debug:bool=False) -> None:
+        '''
+        Initializes a Hermes object.
+
+        Args:
+            path (str): The path to the map file.
+            repeat_value (bool, optional): Whether to repeat the value at visited positions. Defaults to False.
+            debug (bool, optional): Whether to enable debug mode. Defaults to False.
+        '''
         self._dirs = {
             "U":     [-1, 0],
             "D":     [1, 0],
@@ -61,9 +97,10 @@ class Hermes:
     # Other Methods
     def change_curve_direction(self) -> int:
         '''
-        Verify the direction to follow in the map using the current position and the current direction
-        Time Complexity: O(1)
-        Space Complexity: O(1)
+        Verify the direction to follow in the map using the current position and the current direction.
+
+        Returns:
+            int: 1
         '''
         try:
             self.log(f"Checking a Curve! Current Direction: {self.direction}.")
@@ -94,7 +131,7 @@ class Hermes:
                 elif self.mapping[self.position[0]][self.position[1]] == '\\':
                     self.update_position_and_direction(self._dirs['D'])
             return 1
-            
+
 
             # if self.direction[1] == 0:
             #     # If it's a border, or left street exists
@@ -113,30 +150,33 @@ class Hermes:
         except:
             self.log(f"Não foi possível definir direção a partir da posição {self.position}.")
             self.atlas.debug_save(self.direction)
-            # sys.exit(1)
+            sys.exit(1)
 
     def travel_until_curve(self) -> int:
         '''
-        Travel through the self.atlas and return the total value of the money and a list with the money in the order they were found
+        Travel through the map until reaching a curve or a dead end.
         Time Complexity: O(n)
+
+        Returns:
+            int: Number of operations performed during the travel.
         '''
-        # try:
-        op = 0
-        while (self.mapping[self.position[0]][self.position[1]] not in self.atlas._CURVE) and (not self.is_at_dead_end()):
-            op += 1
-            self.atlas.debug_control(self.position)
-            self.log_informations()
+        try:
+            op = 0
+            while (self.mapping[self.position[0]][self.position[1]] not in self.atlas._CURVE) and (not self.is_at_dead_end()):
+                op += 1
+                self.atlas.debug_control(self.position)
+                self.log_informations()
 
-            if self.mapping[self.position[0]][self.position[1]].isdigit():
-                self.log("FOUND MONEY!")
-                self.collect_money() # returns current coordinates after collecting money
-                continue    # Don't update coordinates manually
+                if self.mapping[self.position[0]][self.position[1]].isdigit():
+                    self.log("FOUND MONEY!")
+                    op += self.collect_money() # returns current coordinates after collecting money
+                    continue    # Don't update coordinates manually
 
-            self.update_position()
-        return op
-        # except:
-        #     self.atlas.debug_save(self.direction)
-        #     sys.exit(1)
+                self.update_position()
+            return op
+        except:
+            self.atlas.debug_save(self.direction)
+            sys.exit(1)
 
     def collect_money(self) -> int:
         '''
@@ -147,9 +187,10 @@ class Hermes:
         self.log(f"Starting money collection at position {self.position}.")
         value = ''
         while self.mapping[self.position[0]][self.position[1]].isdigit():
-            op += 1
+            op += 2 # Duas operações abaixo
             value += str(self.mapping[self.position[0]][self.position[1]])
             if not self.repeat:
+                op += 1
                 self.atlas.set_as_visited(self.position)
             self.update_position()
 

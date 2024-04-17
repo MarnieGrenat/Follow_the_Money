@@ -11,6 +11,15 @@ def save_returns(op: int, path:str, returns:tuple) -> None:
         file.write(f"List of Money Collected: {returns[1]}")
 
 def main(path:str) -> tuple:
+    '''
+    Main function to execute the program logic.
+
+    Args:
+        path (str): The path to the map file.
+
+    Returns:
+        tuple: A tuple containing the amount of money collected and a list of money values collected.
+    '''
     police = Hermes(path, repeat_value=REPETIR_NOS_CRUZAMENTOS, debug=DEBUG)
     operations = 0
     while (not police.is_at_dead_end()) and (not police.is_not_at_wall()):
@@ -26,7 +35,7 @@ def main(path:str) -> tuple:
     save_returns(operations, path, (police.get_money_amount(), police.get_money_list()))
 
 if __name__ == "__main__":
-    inputs = [
+    inputs = [ # lista de casos de teste
         # 'Tests\case-example.txt',
         'Tests\caseG50.txt',
         'Tests\caseG100.txt',

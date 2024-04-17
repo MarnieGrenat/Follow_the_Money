@@ -3,17 +3,17 @@ class Atlas:
     Atlas class. It is responsible for loading the map from a file and transforming it into a matrix.
 
     Attributes:
-        path (str)                                          :   The path to the map file.
-        map (list)                                          :   The map represented as a matrix.
-        start (list)                                        :   The starting position in the map.
+        path (str): The path to the map file.
+        map (list): The map represented as a matrix.
+        start (list): The starting position in the map.
 
     Methods:
-        __init__(self, path: str) -> None                   :   Initializes a Map object.
-        __load_map(self) -> list                            :   Loads the map from the file.
-        __load_map_as_matrix(self, track:str) -> list       :   Transforms the map into a matrix.
-        __find_start(self) -> list                          :   Finds the start position in the map.
-        print_map_iteration(self, position: list) -> None   :   Prints the map with the current position marked as visited.
-        set_as_VISITED(self, row:int, column:int) -> None   :   Sets the current position as visited.
+        __init__(self, path: str) -> None: Initializes a Map object.
+        __load_map(self) -> list: Loads the map from the file.
+        __load_map_as_matrix(self, track:str) -> list: Transforms the map into a matrix.
+        __find_start(self) -> list: Finds the start position in the map.
+        print_map_iteration(self, position: list) -> None: Prints the map with the current position marked as visited.
+        set_as_VISITED(self, row:int, column:int) -> None: Sets the current position as visited.
     '''
     _VISITED             =   "X"
     _DEAD_END            =   "#"
@@ -22,6 +22,13 @@ class Atlas:
     _HORIZONTAL_STREET   =   "-"
     _CURVE               =   ['\\', '/']
     def __init__(self, path: str, debug:bool=False) -> None:
+        '''
+        Initializes an Atlas object.
+
+        Args:
+            path (str): The path to the map file.
+            debug (bool, optional): Whether to enable debug mode. Defaults to False.
+        '''
         self.path = path
         self.debug = debug
 
@@ -53,8 +60,12 @@ class Atlas:
         '''
         Transform the map into a matrix, where each element is a character of the map.
         Also add spaces to the end of each line to make the matrix a rectangle.
-        Complexity: O(2n)
-        Space Complexity: O(lines * columns)
+
+        Args:
+            track (str): The map as a string.
+
+        Returns:
+            list: The map represented as a matrix.
         '''
         track  = track.split('\n')
         matrix = []
