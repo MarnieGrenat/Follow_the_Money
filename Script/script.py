@@ -3,28 +3,40 @@ from Olympus.Hermes import Hermes
 REPETIR_NOS_CRUZAMENTOS = True
 DEBUG = False
 
-def save_returns(path:str, returns:tuple) -> None:
+
+def save_returns(op: int, path:str, returns:tuple) -> None:
     with open(path[:-4]+'_OUTPUT.txt', 'w') as file:
+        file.write(f"Operations: {op}\n\n")
         file.write(f"Amount of Money Collected: {returns[0]}\n\n")
         file.write(f"List of Money Collected: {returns[1]}")
 
 def main(path:str) -> tuple:
-    police = Hermes(path, repeat_value=REPETIR_NOS_CRUZAMENTOS, debug=DEBUG)
+    '''
+    Main function to execute the program logic.
 
+    Args:
+        path (str): The path to the map file.
+
+    Returns:
+        tuple: A tuple containing the amount of money collected and a list of money values collected.
+    '''
+    police = Hermes(path, repeat_value=REPETIR_NOS_CRUZAMENTOS, debug=DEBUG)
+    operations = 0
     while (not police.is_at_dead_end()) and (not police.is_not_at_wall()):
-        police.travel_until_curve()
-        police.change_curve_direction()
+        operations+=1
+        operations += police.travel_until_curve()
+        operations += police.change_curve_direction()
 
     if DEBUG:
-        police.atlas.debug_save(police.direction)
+        police.atlas.debug_save(police.direction, operations)
 
     print(f"Amount of Money Collected: {police.get_money_amount()}")
-    save_returns(path, (police.get_money_amount(), police.get_money_list()))
-
+    print(f"Operations: {operations}")
+    save_returns(operations, path, (police.get_money_amount(), police.get_money_list()))
 
 if __name__ == "__main__":
-    inputs = [
-        # 'Tests\caseG01.txt',
+    inputs = [ # lista de casos de teste
+        # 'Tests\case-example.txt',
         'Tests\caseG50.txt',
         'Tests\caseG100.txt',
         'Tests\caseG200.txt',
